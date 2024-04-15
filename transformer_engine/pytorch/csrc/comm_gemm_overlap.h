@@ -563,9 +563,10 @@ struct UbufP2PCommOverlap : torch::CustomClassHolder, UbufBase {
       create_communicator_grouped2(&_ub_comm, 1, 1, tp_size, 1);
       comm_created = true;
     }
-    use_ce = 1;
-    sms = 1;
+    use_ce = 0;
+    sms = 16;
     cga_size = 1;
+    set_sm_margin = 1;
 
     _empty_tensor = empty_tensor;
     // Create workspace tensor with userbuffer
@@ -607,7 +608,7 @@ struct UbufP2PCommOverlap : torch::CustomClassHolder, UbufBase {
     // Set the number of SMs for GEMM with margin
     cudaDeviceProp prop;
     cudaGetDeviceProperties(&prop, 0);
-    _math_sms = (set_sm_margin) ? prop.multiProcessorCount - num_comm_sm : prop.multiProcessorCount;
+    _math_sms = (set_sm_margin) ? prop.multiProcessorCount - (num_comm_sm + 1) : prop.multiProcessorCount;
     _math_sms -= transformer_engine::getenv<int>("NVTE_EXT_MARGIN_SM", 0);
 
     _tp_size = tp_size;
